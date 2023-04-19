@@ -1,3 +1,4 @@
+using FlightPlaner_ASPNET.Storage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlaner_ASPNET.Controllers;
@@ -10,6 +11,7 @@ public class CleanupController : ControllerBase
     [Route("clear")]
     public IActionResult Clear()
     {
+        FlightStorage.Clear();
         return Ok();
     }
 }

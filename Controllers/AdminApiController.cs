@@ -27,8 +27,17 @@ public class AdminApiController : ControllerBase
     [Route("flights")]
     public IActionResult AddFlight(Flight flight)
     {
+        if (!FlightStorage.IsAllFieldsCorrect(flight))
+        {
+            return BadRequest();
+        }
+        
+        if (FlightStorage.IsAlreadyInFlights(flight))
+        {
+            return Conflict();
+        }
+        
         FlightStorage.AddFlight(flight);
-
         return Created("", flight);
     }
 }
