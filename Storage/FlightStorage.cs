@@ -20,6 +20,12 @@ public static class FlightStorage
         return flight;
     }
 
+    public static void DeleteFlight(int id)
+    {
+        var flight = GetFlight(id);
+        _flights.Remove(flight);
+    }
+
     public static bool IsAlreadyInFlights(Flight flight)
     {
         return _flights.Any(f => f.DepartureTime == flight.DepartureTime
@@ -35,6 +41,21 @@ public static class FlightStorage
 
     public static bool IsAllFieldsCorrect(Flight flight)
     {
+        var hasAllPropertyValues = IsAllFlightPropertiesValid(flight);
+        var hasFromAndToDifferent = HasFlightDifferentDestination(flight);
+        var hasPossibleFlightTime = HasPositiveTravelTime(flight);
+        
+        return hasAllPropertyValues && hasFromAndToDifferent && hasPossibleFlightTime;
+    }
+
+    public static void Clear()
+    {
+        _flights.Clear();
+        _id = 1;
+    }
+    
+    private static bool IsAllFlightPropertiesValid(Flight flight)
+    {
         var hasDepartureTime = !string.IsNullOrEmpty(flight.DepartureTime);
         var hasArrivalTime = !string.IsNullOrEmpty(flight.ArrivalTime);
         var hasCarrier = !string.IsNullOrEmpty(flight.Carrier);
@@ -45,23 +66,21 @@ public static class FlightStorage
         var hasToCountry = !string.IsNullOrEmpty(flight.To.Country);
         var hasToAirportCode = !string.IsNullOrEmpty(flight.To.AirportCode);
         
-        var hasAllPropertyValues = hasDepartureTime && hasArrivalTime && hasCarrier && hasFromCity && hasFromCountry &&
-                                   hasFromAirportCode && hasToCity && hasToCountry && hasToAirportCode;
-        
-        var hasFromAndToDifferent = !(flight.From.City.ToLower().Trim() == flight.To.City.ToLower().Trim() &&
-                                    flight.From.Country.ToLower().Trim() == flight.To.Country.ToLower().Trim() &&
-                                    flight.From.AirportCode.ToLower().Trim() == flight.To.AirportCode.ToLower().Trim());
-
-        var departureTime = Convert.ToDateTime(flight.DepartureTime);
-        var arrivalTime = Convert.ToDateTime(flight.ArrivalTime);
-        var hasPossibleFlightTime = arrivalTime > departureTime;
-        
-        return hasAllPropertyValues && hasFromAndToDifferent && hasPossibleFlightTime;
+        return hasDepartureTime && hasArrivalTime && hasCarrier && hasFromCity && hasFromCountry &&
+               hasFromAirportCode && hasToCity && hasToCountry && hasToAirportCode;
     }
 
-    public static void Clear()
+    private static bool HasFlightDifferentDestination(Flight flight)
     {
-        _flights.Clear();
-        _id = 1;
+        return !(flight.From.City.ToLower().Trim() == flight.To.City.ToLower().Trim() &&
+                 flight.From.Country.ToLower().Trim() == flight.To.Country.ToLower().Trim() &&
+                 flight.From.AirportCode.ToLower().Trim() == flight.To.AirportCode.ToLower().Trim());
+    }
+
+    private static bool HasPositiveTravelTime(Flight flight)
+    {
+        var departureTime = Convert.ToDateTime(flight.DepartureTime);
+        var arrivalTime = Convert.ToDateTime(flight.ArrivalTime);
+        return arrivalTime > departureTime;
     }
 }

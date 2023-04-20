@@ -38,6 +38,16 @@ public class AdminApiController : ControllerBase
         }
         
         FlightStorage.AddFlight(flight);
+        AirportStorage.AddAirport(flight.From);
+        AirportStorage.AddAirport(flight.To);
         return Created("", flight);
+    }
+
+    [HttpDelete]
+    [Route("flights/{id}")]
+    public IActionResult DeleteFlight(int id)
+    {
+        FlightStorage.DeleteFlight(id);
+        return Ok();
     }
 }
