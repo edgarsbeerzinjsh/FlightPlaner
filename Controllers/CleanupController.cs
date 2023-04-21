@@ -12,6 +12,7 @@ public class CleanupController : ControllerBase
     public IActionResult Clear()
     {
         FlightStorage.Clear();
+        AirportStorage.Clear();
         return Ok();
     }
 }

@@ -8,6 +8,30 @@ public static class FlightStorage
     private static List<Flight> _flights = new List<Flight>();
     private static int _id = 1;
 
+    public static PageResult SearchFlights(CustomerSearchQuery searchQuery)
+    {
+        var answer = new PageResult() {Page=0, TotalItems = 0};
+        foreach (var flight in _flights)
+        {
+            if (searchQuery.From == flight.From.AirportCode && 
+                searchQuery.To == flight.To.AirportCode &&
+                Convert.ToDateTime(searchQuery.DepartureDate) < Convert.ToDateTime(flight.DepartureTime))
+            {
+                answer.TotalItems++;
+                answer.Items.Add(flight);
+            }
+        }
+        
+        return answer;
+    }
+
+    public static bool IsSearchFlightValid(CustomerSearchQuery searchQuery)
+    {
+        return IsNotNullOrEmptyEntry(searchQuery.From) && 
+               IsNotNullOrEmptyEntry(searchQuery.To) &&
+               IsNotNullOrEmptyEntry(searchQuery.DepartureDate) &&
+               searchQuery.From != searchQuery.To;
+    }
     public static Flight GetFlight(int id)
     {
         return _flights.SingleOrDefault(flight => flight.Id == id);
@@ -39,13 +63,11 @@ public static class FlightStorage
                                  && f.To.AirportCode == flight.To.AirportCode);
     }
 
-    public static bool IsAllFieldsCorrect(Flight flight)
+    public static bool IsAllFlightFieldsCorrect(Flight flight)
     {
-        var hasAllPropertyValues = IsAllFlightPropertiesValid(flight);
-        var hasFromAndToDifferent = HasFlightDifferentDestination(flight);
-        var hasPossibleFlightTime = HasPositiveTravelTime(flight);
-        
-        return hasAllPropertyValues && hasFromAndToDifferent && hasPossibleFlightTime;
+        return IsAllFlightPropertiesValid(flight) && 
+               HasTwoDifferentAirports(flight.From, flight.To) &&
+               HasPositiveTravelTime(flight);
     }
 
     public static void Clear()
@@ -56,31 +78,39 @@ public static class FlightStorage
     
     private static bool IsAllFlightPropertiesValid(Flight flight)
     {
-        var hasDepartureTime = !string.IsNullOrEmpty(flight.DepartureTime);
-        var hasArrivalTime = !string.IsNullOrEmpty(flight.ArrivalTime);
-        var hasCarrier = !string.IsNullOrEmpty(flight.Carrier);
-        var hasFromCity = !string.IsNullOrEmpty(flight.From.City);
-        var hasFromCountry = !string.IsNullOrEmpty(flight.From.Country);
-        var hasFromAirportCode = !string.IsNullOrEmpty(flight.From.AirportCode);
-        var hasToCity = !string.IsNullOrEmpty(flight.To.City);
-        var hasToCountry = !string.IsNullOrEmpty(flight.To.Country);
-        var hasToAirportCode = !string.IsNullOrEmpty(flight.To.AirportCode);
-        
-        return hasDepartureTime && hasArrivalTime && hasCarrier && hasFromCity && hasFromCountry &&
-               hasFromAirportCode && hasToCity && hasToCountry && hasToAirportCode;
+        return IsNotNullOrEmptyEntry(flight.DepartureTime) && 
+               IsNotNullOrEmptyEntry(flight.ArrivalTime) &&
+               IsNotNullOrEmptyEntry(flight.Carrier) && 
+               IsAllAirportPropertiesValid(flight.From) &&
+               IsAllAirportPropertiesValid(flight.To);
     }
 
-    private static bool HasFlightDifferentDestination(Flight flight)
+    private static bool IsNotNullOrEmptyEntry(string entry)
     {
-        return !(flight.From.City.ToLower().Trim() == flight.To.City.ToLower().Trim() &&
-                 flight.From.Country.ToLower().Trim() == flight.To.Country.ToLower().Trim() &&
-                 flight.From.AirportCode.ToLower().Trim() == flight.To.AirportCode.ToLower().Trim());
+        return !string.IsNullOrEmpty(entry);
+    }
+
+    private static bool IsAllAirportPropertiesValid(Airport airport)
+    {
+        return IsNotNullOrEmptyEntry(airport.City) && 
+               IsNotNullOrEmptyEntry(airport.Country) &&
+               IsNotNullOrEmptyEntry(airport.AirportCode);
+    }
+
+    private static bool HasTwoDifferentAirports(Airport from, Airport to)
+    {
+        return !(ToLowerAndTrim(from.City) == ToLowerAndTrim(to.City) &&
+                 ToLowerAndTrim(from.Country) == ToLowerAndTrim(to.Country) &&
+                 ToLowerAndTrim(from.AirportCode) == ToLowerAndTrim(to.AirportCode));
+    }
+
+    private static string ToLowerAndTrim(string st)
+    {
+        return st.ToLower().Trim();
     }
 
     private static bool HasPositiveTravelTime(Flight flight)
     {
-        var departureTime = Convert.ToDateTime(flight.DepartureTime);
-        var arrivalTime = Convert.ToDateTime(flight.ArrivalTime);
-        return arrivalTime > departureTime;
+        return Convert.ToDateTime(flight.ArrivalTime) > Convert.ToDateTime(flight.DepartureTime);
     }
 }
