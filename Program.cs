@@ -1,5 +1,7 @@
+using FlightPlaner_ASPNET;
 using FlightPlaner_ASPNET.Handlers;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication("BasicAuthentication")
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-
+builder.Services.AddDbContext<FlightPlanerDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("FlightPlaner")));
+    
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

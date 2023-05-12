@@ -1,23 +1,29 @@
 using FlightPlaner_ASPNET.Models;
-using FlightPlaner_ASPNET.Storage;
+using FlightPlaner_ASPNET.PropertyValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlightPlaner_ASPNET.Controllers;
 
 [ApiController]
 [Authorize]
 [Route("admin-api")]
-public class AdminApiController : ControllerBase
+public class AdminApiController : BaseApiController
 {
     private static readonly object flightsLock = new object();
     private static readonly ReaderWriterLockSlim airportLock = new ReaderWriterLockSlim();
+
+    public AdminApiController(FlightPlanerDbContext context) : base(context)
+    {
+    }
     
     [HttpGet]
     [Route("flights/{id}")]
     public IActionResult GetFlights(int id)
     {
-        var flight = FlightStorage.GetFlight(id);
+        var flight = FlightInContext(id);
+
         if (flight == null)
         {
             return NotFound();
@@ -32,12 +38,21 @@ public class AdminApiController : ControllerBase
     {
         lock (flightsLock)
         {
-            if (!FlightStorage.IsAllFlightFieldsCorrect(flight))
+            if (!InputValidation.IsAllFlightFieldsCorrect(flight))
             {
                 return BadRequest();
             }
 
-            if (FlightStorage.IsAlreadyInFlights(flight))
+            if (_context.Flights
+                .Any(f => f.DepartureTime == flight.DepartureTime
+                            && f.ArrivalTime == flight.ArrivalTime
+                            && f.Carrier == flight.Carrier
+                            && f.From.City == flight.From.City
+                            && f.From.Country == flight.From.Country
+                            && f.From.AirportCode == flight.From.AirportCode
+                            && f.To.City == flight.To.City
+                            && f.To.Country == flight.To.Country
+                            && f.To.AirportCode == flight.To.AirportCode))
             {
                 return Conflict();
             }
@@ -45,14 +60,14 @@ public class AdminApiController : ControllerBase
             airportLock.EnterWriteLock();
             try
             {
-                FlightStorage.AddFlight(flight);
-                AirportStorage.AddAirport(flight.From);
-                AirportStorage.AddAirport(flight.To);
+                _context.Flights.Add(flight);
+                _context.SaveChanges();
             }
             finally
             {
                 airportLock.ExitWriteLock();
             }
+
             return Created("", flight);
         }
     }
@@ -63,7 +78,16 @@ public class AdminApiController : ControllerBase
     {
         lock (flightsLock)
         {
-            FlightStorage.DeleteFlight(id);
+            var flight = FlightInContext(id);
+
+            if (flight != null)
+            {
+                _context.Flights.Remove(flight);
+                _context.Airports.Remove(flight.From);
+                _context.Airports.Remove(flight.To);
+                _context.SaveChanges();
+            }
+            
             return Ok();
         }
     }
