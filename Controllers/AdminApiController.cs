@@ -44,8 +44,6 @@ public class AdminApiController : BaseApiController
             }
 
             if (_context.Flights
-                .Include(f => f.From)
-                .Include(f => f.To)
                 .Any(f => f.DepartureTime == flight.DepartureTime
                             && f.ArrivalTime == flight.ArrivalTime
                             && f.Carrier == flight.Carrier
