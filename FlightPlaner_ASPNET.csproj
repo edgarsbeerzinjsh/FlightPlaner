@@ -7,6 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="FlightPlaner.Core\**" />
+      <Compile Remove="FlightPlaner.Data\**" />
+      <Content Remove="FlightPlaner.Core\**" />
+      <Content Remove="FlightPlaner.Data\**" />
+      <EmbeddedResource Remove="FlightPlaner.Core\**" />
+      <EmbeddedResource Remove="FlightPlaner.Data\**" />
+      <None Remove="FlightPlaner.Core\**" />
+      <None Remove="FlightPlaner.Data\**" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
