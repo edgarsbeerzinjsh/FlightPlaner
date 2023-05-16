@@ -1,4 +1,5 @@
-﻿using FlightPlaner_ASPNET.Models;
+﻿using FlightPlaner.Core.Models;
+using FlightPlaner.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,9 +7,9 @@ namespace FlightPlaner_ASPNET.Controllers
 {
     public abstract class BaseApiController : ControllerBase
     {
-        protected FlightPlanerDbContext _context;
+        protected IFlightPlanerDbContext _context;
 
-        protected BaseApiController(FlightPlanerDbContext context)
+        protected BaseApiController(IFlightPlanerDbContext context)
         {
             _context = context;
         }

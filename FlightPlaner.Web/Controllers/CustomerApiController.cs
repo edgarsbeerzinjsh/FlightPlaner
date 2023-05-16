@@ -1,3 +1,4 @@
+using FlightPlaner.Data;
 using FlightPlaner_ASPNET.Models;
 using FlightPlaner_ASPNET.PropertyValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ namespace FlightPlaner_ASPNET.Controllers;
 [Route("api")]
 public class CustomerApiController : BaseApiController
 {
-    public CustomerApiController(FlightPlanerDbContext context) : base(context)
+    public CustomerApiController(IFlightPlanerDbContext context) : base(context)
     {
     }
 
@@ -42,7 +43,7 @@ public class CustomerApiController : BaseApiController
         }
 
         var result = new PageResult() { Page=0, TotalItems=0 };
-        
+
         result.Items = _context.Flights
                 .Include(f => f.From)
                 .Include(f => f.To)
@@ -50,7 +51,7 @@ public class CustomerApiController : BaseApiController
                 .Where(f => f.From.AirportCode == search.From &&
                             f.To.AirportCode == search.To &&
                             Convert.ToDateTime(f.DepartureTime) > Convert.ToDateTime(search.DepartureDate)).ToList();
-        
+
         result.TotalItems = result.Items.Count;
 
         return Ok(result);

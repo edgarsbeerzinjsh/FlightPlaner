@@ -1,3 +1,4 @@
+using FlightPlaner.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlaner_ASPNET.Controllers;
@@ -6,7 +7,7 @@ namespace FlightPlaner_ASPNET.Controllers;
 [Route("testing-api")]
 public class CleanupController : BaseApiController
 {
-    public CleanupController(FlightPlanerDbContext context) : base(context)
+    public CleanupController(IFlightPlanerDbContext context) : base(context)
     {
     }
 

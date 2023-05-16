@@ -1,3 +1,5 @@
+using FlightPlaner.Core.Models;
+
 namespace FlightPlaner_ASPNET.Models;
 
 public class PageResult

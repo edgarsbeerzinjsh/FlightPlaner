@@ -1,4 +1,5 @@
-﻿using FlightPlaner_ASPNET.Models;
+﻿using FlightPlaner.Core.Models;
+using FlightPlaner_ASPNET.Models;
 
 namespace FlightPlaner_ASPNET.PropertyValidation
 {

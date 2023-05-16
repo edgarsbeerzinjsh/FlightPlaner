@@ -1,8 +1,11 @@
+using AutoMapper;
+using FlightPlaner.Core.Models;
+using FlightPlaner.Core.Services;
+using FlightPlaner.Data;
 using FlightPlaner_ASPNET.Models;
 using FlightPlaner_ASPNET.PropertyValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FlightPlaner_ASPNET.Controllers;
 
@@ -13,31 +16,40 @@ public class AdminApiController : BaseApiController
 {
     private static readonly object flightsLock = new object();
     private static readonly ReaderWriterLockSlim airportLock = new ReaderWriterLockSlim();
+    private readonly IFlightService _flightService;
+    private readonly IMapper _mapper;
 
-    public AdminApiController(FlightPlanerDbContext context) : base(context)
+    public AdminApiController(
+        IFlightPlanerDbContext context,
+        IFlightService flightService,
+        IMapper mapper) : base(context)
     {
+        _flightService = flightService;
+        _mapper = mapper;
     }
     
     [HttpGet]
     [Route("flights/{id}")]
     public IActionResult GetFlights(int id)
     {
-        var flight = FlightInContext(id);
+        var flight = _flightService.GetFullFlight(id);
+        //var flight = FlightInContext(id);
 
         if (flight == null)
         {
             return NotFound();
         }
 
-        return Ok(flight);
+        return Ok(_mapper.Map<AddFlightRequest>(flight));
     }
 
     [HttpPut]
     [Route("flights")]
-    public IActionResult AddFlight(Flight flight)
+    public IActionResult AddFlight(AddFlightRequest request)
     {
         lock (flightsLock)
         {
+            var flight = _mapper.Map<Flight>(request);
             if (!InputValidation.IsAllFlightFieldsCorrect(flight))
             {
                 return BadRequest();
@@ -60,15 +72,16 @@ public class AdminApiController : BaseApiController
             airportLock.EnterWriteLock();
             try
             {
-                _context.Flights.Add(flight);
-                _context.SaveChanges();
+                _flightService.Create(flight);
+                //_context.Flights.Add(flight);
+                //_context.SaveChanges();
             }
             finally
             {
                 airportLock.ExitWriteLock();
             }
 
-            return Created("", flight);
+            return Created("", _mapper.Map<AddFlightRequest>(flight));
         }
     }
 
@@ -78,7 +91,8 @@ public class AdminApiController : BaseApiController
     {
         lock (flightsLock)
         {
-            var flight = FlightInContext(id);
+            var flight = _flightService.GetFullFlight(id);
+            //var flight = FlightInContext(id);
 
             if (flight != null)
             {
