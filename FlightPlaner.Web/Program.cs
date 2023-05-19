@@ -1,6 +1,4 @@
 using AutoMapper;
-using FlightPlaner.Core.Models;
-using FlightPlaner.Core.Services;
 using FlightPlaner.Data;
 using FlightPlaner.Services;
 using FlightPlaner_ASPNET;
@@ -21,11 +19,11 @@ builder.Services.AddAuthentication("BasicAuthentication")
 builder.Services.AddDbContext<FlightPlanerDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("FlightPlaner")));
 builder.Services.AddTransient<IFlightPlanerDbContext, FlightPlanerDbContext>();
-builder.Services.AddScoped<IDbService, DbService>();
-builder.Services.AddScoped<IEntityService<Flight>, EntityService<Flight>>();
-builder.Services.AddScoped<IEntityService<Airport>, EntityService<Airport>>();
-builder.Services.AddScoped<IFlightService, FlightService>();
 builder.Services.AddSingleton<IMapper>(AutoMapperConfig.CreateMapper());
+
+builder.Services.RegisterServices();
+
+builder.Services.RegisterValidations();
 
 var app = builder.Build();
 

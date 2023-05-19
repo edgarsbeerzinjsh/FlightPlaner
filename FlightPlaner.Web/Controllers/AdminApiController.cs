@@ -1,9 +1,8 @@
 using AutoMapper;
 using FlightPlaner.Core.Models;
 using FlightPlaner.Core.Services;
-using FlightPlaner.Data;
+using FlightPlaner.Core.Validations;
 using FlightPlaner_ASPNET.Models;
-using FlightPlaner_ASPNET.PropertyValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,20 +11,24 @@ namespace FlightPlaner_ASPNET.Controllers;
 [ApiController]
 [Authorize]
 [Route("admin-api")]
-public class AdminApiController : BaseApiController
+public class AdminApiController : ControllerBase
 {
-    private static readonly object flightsLock = new object();
-    private static readonly ReaderWriterLockSlim airportLock = new ReaderWriterLockSlim();
+    private static readonly object flightsLock = new();
     private readonly IFlightService _flightService;
+    private readonly IAirportService _airportService;
     private readonly IMapper _mapper;
+    private readonly IEnumerable<IValidateAddFlight> _validators;
 
     public AdminApiController(
-        IFlightPlanerDbContext context,
         IFlightService flightService,
-        IMapper mapper) : base(context)
+        IAirportService airportService,
+        IMapper mapper,
+        IEnumerable<IValidateAddFlight> validators)
     {
         _flightService = flightService;
+        _airportService = airportService;
         _mapper = mapper;
+        _validators = validators;
     }
     
     [HttpGet]
@@ -33,7 +36,6 @@ public class AdminApiController : BaseApiController
     public IActionResult GetFlights(int id)
     {
         var flight = _flightService.GetFullFlight(id);
-        //var flight = FlightInContext(id);
 
         if (flight == null)
         {
@@ -50,36 +52,18 @@ public class AdminApiController : BaseApiController
         lock (flightsLock)
         {
             var flight = _mapper.Map<Flight>(request);
-            if (!InputValidation.IsAllFlightFieldsCorrect(flight))
+
+            if (!_validators.All(v => v.IsValid(flight)))
             {
                 return BadRequest();
             }
 
-            if (_context.Flights
-                .Any(f => f.DepartureTime == flight.DepartureTime
-                            && f.ArrivalTime == flight.ArrivalTime
-                            && f.Carrier == flight.Carrier
-                            && f.From.City == flight.From.City
-                            && f.From.Country == flight.From.Country
-                            && f.From.AirportCode == flight.From.AirportCode
-                            && f.To.City == flight.To.City
-                            && f.To.Country == flight.To.Country
-                            && f.To.AirportCode == flight.To.AirportCode))
+            if (_flightService.FlightExists(flight))
             {
                 return Conflict();
             }
             
-            airportLock.EnterWriteLock();
-            try
-            {
-                _flightService.Create(flight);
-                //_context.Flights.Add(flight);
-                //_context.SaveChanges();
-            }
-            finally
-            {
-                airportLock.ExitWriteLock();
-            }
+            _flightService.Create(flight);
 
             return Created("", _mapper.Map<AddFlightRequest>(flight));
         }
@@ -92,16 +76,14 @@ public class AdminApiController : BaseApiController
         lock (flightsLock)
         {
             var flight = _flightService.GetFullFlight(id);
-            //var flight = FlightInContext(id);
 
             if (flight != null)
             {
-                _context.Flights.Remove(flight);
-                _context.Airports.Remove(flight.From);
-                _context.Airports.Remove(flight.To);
-                _context.SaveChanges();
+                _flightService.Delete(flight);
+                _airportService.Delete(flight.From);
+                _airportService.Delete(flight.To);
             }
-            
+
             return Ok();
         }
     }

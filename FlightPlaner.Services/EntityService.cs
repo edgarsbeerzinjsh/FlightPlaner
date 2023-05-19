@@ -34,5 +34,10 @@ namespace FlightPlaner.Services
         {
             return GetAll<T>();
         }
+
+        public void DeleteAll()
+        {
+            DeleteAll<T>();
+        }
     }
 }

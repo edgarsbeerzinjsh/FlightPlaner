@@ -43,5 +43,14 @@ namespace FlightPlaner.Services
         {
             return _context.Set<T>().ToList();
         }
+
+        public void DeleteAll<T>() where T : Entity
+        {
+            if (_context.Set<T>().Any())
+            {
+                _context.Set<T>().RemoveRange(_context.Set<T>());
+                _context.SaveChanges();
+            }
+        }
     }
 }

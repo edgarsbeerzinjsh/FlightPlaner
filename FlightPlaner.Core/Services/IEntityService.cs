@@ -9,5 +9,6 @@ namespace FlightPlaner.Core.Services
         public void Update(T entity);
         public void Delete(T entity);
         public List<T> GetAll();
+        public void DeleteAll();
     }
 }

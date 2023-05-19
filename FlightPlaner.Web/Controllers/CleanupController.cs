@@ -1,24 +1,26 @@
-using FlightPlaner.Data;
+using FlightPlaner.Core.Models;
+using FlightPlaner.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightPlaner_ASPNET.Controllers;
 
 [ApiController]
 [Route("testing-api")]
-public class CleanupController : BaseApiController
+public class CleanupController : ControllerBase
 {
-    public CleanupController(IFlightPlanerDbContext context) : base(context)
+    private readonly IDbService _context;
+    public CleanupController(IDbService context)
     {
+        _context = context;
     }
 
     [HttpPost]
     [Route("clear")]
     public IActionResult Clear()
     {
-        _context.Flights.RemoveRange(_context.Flights);
-        _context.Airports.RemoveRange(_context.Airports);
-        _context.SaveChanges();
+            _context.DeleteAll<Flight>();
+            _context.DeleteAll<Airport>();
 
-        return Ok();
+            return Ok();
     }
 }
