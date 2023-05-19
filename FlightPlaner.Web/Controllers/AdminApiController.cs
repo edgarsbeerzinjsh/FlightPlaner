@@ -13,7 +13,7 @@ namespace FlightPlaner_ASPNET.Controllers;
 [Route("admin-api")]
 public class AdminApiController : ControllerBase
 {
-    private static readonly object flightsLock = new();
+    private static readonly object flightAddLock = new();
     private readonly IFlightService _flightService;
     private readonly IAirportService _airportService;
     private readonly IMapper _mapper;
@@ -49,7 +49,7 @@ public class AdminApiController : ControllerBase
     [Route("flights")]
     public IActionResult AddFlight(AddFlightRequest request)
     {
-        lock (flightsLock)
+        lock (flightAddLock)
         {
             var flight = _mapper.Map<Flight>(request);
 
@@ -73,8 +73,6 @@ public class AdminApiController : ControllerBase
     [Route("flights/{id}")]
     public IActionResult DeleteFlight(int id)
     {
-        lock (flightsLock)
-        {
             var flight = _flightService.GetFullFlight(id);
 
             if (flight != null)
@@ -85,6 +83,5 @@ public class AdminApiController : ControllerBase
             }
 
             return Ok();
-        }
     }
 }
