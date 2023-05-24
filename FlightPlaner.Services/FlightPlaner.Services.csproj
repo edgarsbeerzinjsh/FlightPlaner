@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlightPlaner.Core\FlightPlaner.Core.csproj" />
+    <ProjectReference Include="..\FlightPlaner.Data\FlightPlaner.Data.csproj" />
+  </ItemGroup>
+
+</Project>
