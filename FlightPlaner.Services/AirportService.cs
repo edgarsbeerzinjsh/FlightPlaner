@@ -10,7 +10,7 @@ namespace FlightPlaner.Services
         {
         }
 
-        public List<Airport> GetSearchAirports(string search)
+        public List<Airport> SearchAirports(string search)
         {
             var cleanedSearch = search.ToLower().Trim();
 

@@ -31,7 +31,7 @@ public class CustomerApiController : ControllerBase
     [Route("airports")]
     public IActionResult SearchAirports(string search)
     {
-        var airport = _airportService.GetSearchAirports(search);
+        var airport = _airportService.SearchAirports(search);
 
         if (airport == null)
         {
